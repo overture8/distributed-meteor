@@ -1,0 +1,35 @@
+[Unit]
+Description=haproxy load balancer for web server backends
+
+# Requirements
+Requires=etcd.service
+Requires=docker.service
+
+# Dependency ordering
+After=etcd.service
+After=docker.service
+
+[Service]
+# Let the process take awhile to start up (for first run Docker containers)
+TimeoutStartSec=0
+
+# Change killmode from "control-group" to "none" to let Docker remove
+# work correctly.
+KillMode=none
+
+# Get CoreOS environmental variables
+EnvironmentFile=/etc/environment
+
+# Pre-start and Start
+## Directives with "=-" are allowed to fail without consequence
+ExecStartPre=-/usr/bin/docker kill haproxy
+ExecStartPre=-/usr/bin/docker rm haproxy
+ExecStartPre=/usr/bin/docker pull dockerfile/haproxy
+ExecStart=/usr/bin/docker run --name haproxy -p ${COREOS_PUBLIC_IPV4}:80:80 \
+dockerfile/haproxy /usr/local/bin/confd-watch
+
+# Stop
+ExecStop=/usr/bin/docker stop haproxy
+
+[X-Fleet]
+X-Conflicts=haproxy.service
