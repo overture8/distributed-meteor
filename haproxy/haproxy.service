@@ -24,9 +24,9 @@ EnvironmentFile=/etc/environment
 ## Directives with "=-" are allowed to fail without consequence
 ExecStartPre=-/usr/bin/docker kill haproxy
 ExecStartPre=-/usr/bin/docker rm haproxy
-ExecStartPre=/usr/bin/docker pull dockerfile/haproxy
-ExecStart=/usr/bin/docker run --name haproxy -p ${COREOS_PUBLIC_IPV4}:80:80 \
-dockerfile/haproxy /usr/local/bin/confd-watch
+ExecStartPre=/usr/bin/docker build -t haproxy-lb .
+ExecStart=/usr/bin/docker run --name haproxy-lb -p ${COREOS_PUBLIC_IPV4}:80:80 \
+haproxy-lb /usr/local/bin/confd-watch
 
 # Stop
 ExecStop=/usr/bin/docker stop haproxy
